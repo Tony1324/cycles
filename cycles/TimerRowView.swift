@@ -20,7 +20,6 @@ struct TimerRowView: View {
 
     var body: some View {
         HStack(spacing:20){
-            Spacer()
             ZStack{
                 CircleProgressView(progress:Double(item.duration - item.timeLeft)/Double(item.duration))
                 Button(action: item.paused ? startTimer : stopTimer) {
@@ -31,7 +30,13 @@ struct TimerRowView: View {
             .onAppear{
                 if(!item.paused){startTimer()}
             }
-            Text("\(item.timeLeft)   /   \(item.order)")
+            VStack(alignment: .leading){
+                Text(item.name ?? "Untitled")
+                    .font(.title)
+                    .fontWeight(.bold)
+                Text("\(item.timeLeft/3600) : \(item.timeLeft%3600/60) : \(item.timeLeft%60)")
+            }
+            Spacer()
             Button(action: resetTimer) {
                 Image(systemName:"backward.fill")
             }
@@ -40,7 +45,7 @@ struct TimerRowView: View {
                 Image(systemName: "xmark.circle.fill")
             }
             .buttonStyle(PlainButtonStyle())
-            Spacer()
+            
         }
         .padding()
         .frame(maxWidth: .infinity, minHeight: 80, idealHeight: 80, maxHeight: 80)
@@ -51,8 +56,8 @@ struct TimerRowView: View {
     }
     
     private func startTimer(){
+        if(item.paused){item.endTime = Int64(Date().timeIntervalSince1970) + item.timeLeft}
         item.paused = false
-        item.endTime = Int64(Date().timeIntervalSince1970) + item.timeLeft
 
         if(item.timeLeft <= 0){stopTimer()}
         else{

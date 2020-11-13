@@ -35,8 +35,10 @@ struct ContentView: View {
         withAnimation {
             let newItem = TimerItem(context: viewContext)
             newItem.order = Int64(items.count)
-            newItem.duration = Int64(100)
+            newItem.duration = Int64(300)
+            newItem.timeLeft = Int64(300)
             newItem.paused = true
+            newItem.name = "Untitled Timer"
             do {
                 try viewContext.save()
             } catch {
