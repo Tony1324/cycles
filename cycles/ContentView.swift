@@ -14,7 +14,7 @@ struct ContentView: View {
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(key:"order",ascending:true)],
         animation: .default)
-    var items: FetchedResults<Timer>
+    var items: FetchedResults<TimerItem>
 
     var body: some View {
         List {
@@ -33,8 +33,10 @@ struct ContentView: View {
 
     private func addItem() {
         withAnimation {
-            let newItem = Timer(context: viewContext)
-            newItem.order = Int16(items.count)
+            let newItem = TimerItem(context: viewContext)
+            newItem.order = Int64(items.count)
+            newItem.duration = Int64(100)
+            newItem.paused = true
             do {
                 try viewContext.save()
             } catch {

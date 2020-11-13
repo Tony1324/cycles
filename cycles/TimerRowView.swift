@@ -9,21 +9,33 @@ import SwiftUI
 
 struct TimerRowView: View {
     @Environment(\.managedObjectContext) private var viewContext
-    var item:FetchedResults<Timer>.Element
+    var item:FetchedResults<TimerItem>.Element
 
-    @State var currentTime:Int = Int(Date().timeIntervalSince1970)
-    @State var timerIsPaused: Bool = true
+    @State var currentTime:Int64 = Int64(Date().timeIntervalSince1970)
     @State var timer: Timer? = nil
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(key:"order",ascending:true)],
         animation: .default)
-    var items: FetchedResults<Timer>
+    var items: FetchedResults<TimerItem>
 
     var body: some View {
         HStack(spacing:20){
             Spacer()
-            CircleProgressView(progress:0.5)
-            Text("\(currentTime)   /   \(item.order)")
+            ZStack{
+                CircleProgressView(progress:Double(item.duration - item.timeLeft)/Double(item.duration))
+                Button(action: item.paused ? startTimer : stopTimer) {
+                    Image(systemName: item.paused ? "play.fill" : "pause.fill")
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+            .onAppear{
+                if(!item.paused){startTimer()}
+            }
+            Text("\(item.timeLeft)   /   \(item.order)")
+            Button(action: resetTimer) {
+                Image(systemName:"backward.fill")
+            }
+            .buttonStyle(PlainButtonStyle())
             Button(action:deleteItem) {
                 Image(systemName: "xmark.circle.fill")
             }
@@ -38,12 +50,48 @@ struct TimerRowView: View {
         .animation(nil)
     }
     
-    private let itemFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .short
-        formatter.timeStyle = .medium
-        return formatter
-    }()
+    private func startTimer(){
+        item.paused = false
+        item.endTime = Int64(Date().timeIntervalSince1970) + item.timeLeft
+
+        if(item.timeLeft <= 0){stopTimer()}
+        else{
+            DispatchQueue.main.async {
+                timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true){ tempTimer in
+                    currentTime = Int64(Date().timeIntervalSince1970)
+                    item.timeLeft = item.endTime - currentTime
+                    if(item.timeLeft <= 0){stopTimer()}
+                    do {
+                        try viewContext.save()
+                    } catch {
+                        // Replace this implementation with code to handle the error appropriately.
+                        // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
+                        let nsError = error as NSError
+                        fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+                    }
+                }
+            }
+        }
+    }
+    
+    private func stopTimer(){
+        item.paused = true
+        timer?.invalidate()
+        timer = nil
+        do {
+            try viewContext.save()
+        } catch {
+            // Replace this implementation with code to handle the error appropriately.
+            // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
+            let nsError = error as NSError
+            fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+        }
+    }
+    
+    private func resetTimer(){
+        item.timeLeft = item.duration
+        item.endTime = Int64(Date().timeIntervalSince1970) + item.timeLeft
+    }
     
     private func deleteItem() {
         viewContext.delete(item)

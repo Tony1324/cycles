@@ -15,7 +15,7 @@ struct CircleProgressView: View {
                 .stroke(lineWidth: 10.0)
                 .foregroundColor(Color.white.opacity(0.2))
             Circle()
-                .trim(from: 0.0, to: CGFloat(min(self.progress, 1.0)))
+                .trim(from: 0.0, to: CGFloat(max(min(self.progress, 1.0),0.0001)))
                 .stroke(style: StrokeStyle(lineWidth: 10.0, lineCap: .round, lineJoin: .round))
                 .animation(.linear)
                 .foregroundColor(Color.white.opacity(0.6))
