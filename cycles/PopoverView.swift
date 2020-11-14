@@ -9,11 +9,13 @@ import SwiftUI
 
 struct PopoverView: View {
     @Environment(\.managedObjectContext) private var viewContext
+    @Environment(\.colorScheme) var colorScheme
     var item:FetchedResults<TimerItem>.Element
     @State var text:String = ""
     @State var hours:Int64 = 0
     @State var minutes:Int64 = 0
     @State var seconds:Int64 = 0
+    @State var cycle = false
     let colors = [Color.red, Color.orange, Color.yellow, Color.green, Color.blue, Color.purple, Color.pink]
     var body: some View {
         VStack{
@@ -55,15 +57,38 @@ struct PopoverView: View {
                         Button(action:{
                             item.color = Int64(index)
                         }){
-                            Image(systemName: "circle.fill")
-                                .font(.title)
-                                .foregroundColor(colors[index])
+                            ZStack{
+                                Circle()
+                                    .foregroundColor(Color.white.opacity(0.5))
+                                    .frame(width:25,height: 25)
+                                Circle()
+                                    .foregroundColor(colors[index])
+                                    .frame(width:22,height:22)
+                            }
                         }
                         .frame(height:30)
                         .buttonStyle(PlainButtonStyle())
                     }
                 }
             }
+            HStack{
+                Button(action:{
+                    cycle.toggle()
+                    item.cycle = cycle
+                    do {
+                        try viewContext.save()
+                    } catch {
+                        let nsError = error as NSError
+                        fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+                    }
+                }){
+                    Image(systemName: "repeat")
+                        .opacity(cycle ? 1 : 0.2)
+                }
+                .buttonStyle(PlainButtonStyle())
+                .onAppear{cycle = item.cycle}
+            }
+            
             Spacer()
         }
         .padding()

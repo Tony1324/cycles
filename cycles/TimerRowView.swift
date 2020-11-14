@@ -31,31 +31,33 @@ struct TimerRowView: View {
             .onAppear{
                 if(!item.paused){startTimer()}
             }
+            .foregroundColor(.white)
             VStack(alignment: .leading){
                 Text(item.name ?? "Untitled")
                     .font(.title)
                     .fontWeight(.bold)
                 Text("\(max(item.timeLeft,0)/3600) : \(max(item.timeLeft,0)%3600/60) : \(max(item.timeLeft,0)%60)")
             }
+            .foregroundColor(.white)
             Spacer()
             Button(action: resetTimer) {
                 Image(systemName:"backward.fill")
             }
             .buttonStyle(PlainButtonStyle())
+            .foregroundColor(.white)
             Button(action:deleteItem) {
                 Image(systemName: "xmark.circle.fill")
                     .opacity(0.5)
             }
             .buttonStyle(PlainButtonStyle())
+            .foregroundColor(.white)
         }
         .padding()
         .frame(maxWidth: .infinity, minHeight: 80, idealHeight: 80, maxHeight: 80)
         .popover(isPresented: $showPopover, arrowEdge: .trailing){
             PopoverView(item:item)
         }
-        .foregroundColor(.white)
         .background(colors[Int(item.color)])
-        
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .onLongPressGesture {
             showPopover = true
@@ -67,15 +69,21 @@ struct TimerRowView: View {
         if(item.paused){item.endTime = Int64(Date().timeIntervalSince1970) + item.timeLeft}
         item.paused = false
         if(item.timeLeft <= 0){
-            stopTimer();
-            item.timeLeft = 0
+            if(item.cycle){resetTimer()}
+            else{
+                stopTimer();
+                item.timeLeft = 0
+            }
         }
         else{
             DispatchQueue.main.async {
                 timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true){ tempTimer in
                     currentTime = Int64(Date().timeIntervalSince1970)
                     item.timeLeft = item.endTime - currentTime
-                    if(item.timeLeft <= 0){stopTimer()}
+                    if(item.timeLeft <= 0){
+                        if(item.cycle){resetTimer()}
+                        else{stopTimer()}
+                    }
                     do {
                         try viewContext.save()
                     } catch {
