@@ -38,6 +38,7 @@ struct ContentView: View {
             newItem.duration = Int64(300)
             newItem.timeLeft = Int64(300)
             newItem.paused = true
+            newItem.color = Int64(4)
             newItem.name = "Untitled Timer"
             do {
                 try viewContext.save()
