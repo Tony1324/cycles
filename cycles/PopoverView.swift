@@ -16,6 +16,7 @@ struct PopoverView: View {
     @State var minutes:Int64 = 0
     @State var seconds:Int64 = 0
     @State var cycle = false
+    @State var sound = true
     let colors = [Color.red, Color.orange, Color.yellow, Color.green, Color.blue, Color.purple, Color.pink]
     var body: some View {
         VStack{
@@ -83,12 +84,26 @@ struct PopoverView: View {
                     }
                 }){
                     Image(systemName: "repeat")
-                        .opacity(cycle ? 1 : 0.2)
+                        .opacity(cycle ? 1 : 0.4)
                 }
                 .buttonStyle(PlainButtonStyle())
                 .onAppear{cycle = item.cycle}
+                Button(action:{
+                    sound.toggle()
+                    item.sound = sound
+                    do {
+                        try viewContext.save()
+                    } catch {
+                        let nsError = error as NSError
+                        fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+                    }
+                }){
+                    Image(systemName: sound ? "bell.fill" : "bell.slash")
+                        .opacity(sound ? 1 : 0.4)
+                }
+                .buttonStyle(PlainButtonStyle())
+                .onAppear{sound = item.sound}
             }
-            
             Spacer()
         }
         .padding()

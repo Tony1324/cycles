@@ -41,6 +41,7 @@ struct ContentView: View {
             newItem.color = Int64(4)
             newItem.name = "Untitled Timer"
             newItem.cycle = false
+            newItem.sound = true
             do {
                 try viewContext.save()
             } catch {

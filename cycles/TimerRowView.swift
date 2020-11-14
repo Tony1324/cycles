@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UserNotifications
 
 struct TimerRowView: View {
     @Environment(\.managedObjectContext) private var viewContext
@@ -66,9 +67,17 @@ struct TimerRowView: View {
     }
     
     private func startTimer(){
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { success, error in
+            if success {
+                print("All set!")
+            } else if let error = error {
+                print(error.localizedDescription)
+            }
+        }
         if(item.paused){item.endTime = Int64(Date().timeIntervalSince1970) + item.timeLeft}
         item.paused = false
         if(item.timeLeft <= 0){
+            sendNotification()
             if(item.cycle){resetTimer()}
             else{
                 stopTimer();
@@ -81,6 +90,7 @@ struct TimerRowView: View {
                     currentTime = Int64(Date().timeIntervalSince1970)
                     item.timeLeft = item.endTime - currentTime
                     if(item.timeLeft <= 0){
+                        sendNotification()
                         if(item.cycle){resetTimer()}
                         else{stopTimer()}
                     }
@@ -111,6 +121,16 @@ struct TimerRowView: View {
     private func resetTimer(){
         item.timeLeft = item.duration
         item.endTime = Int64(Date().timeIntervalSince1970) + item.timeLeft
+    }
+    
+    private func sendNotification(){
+        let content = UNMutableNotificationContent()
+        content.title = item.name ?? "Untitled Timer"
+        content.subtitle = "\(max(item.duration,0)/3600) : \(max(item.duration,0)%3600/60) : \(max(item.duration,0)%60)"
+        if(item.sound){content.sound = UNNotificationSound.default}
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
+        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+        UNUserNotificationCenter.current().add(request)
     }
     
     private func deleteItem() {

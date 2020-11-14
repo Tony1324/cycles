@@ -8,9 +8,10 @@
         <attribute name="name" optional="YES" attributeType="String"/>
         <attribute name="order" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="paused" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="sound" optional="YES" attributeType="Boolean" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="timeLeft" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
     </entity>
     <elements>
-        <element name="TimerItem" positionX="-63" positionY="-18" width="128" height="149"/>
+        <element name="TimerItem" positionX="-63" positionY="-18" width="128" height="164"/>
     </elements>
 </model>
