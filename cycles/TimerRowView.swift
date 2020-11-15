@@ -87,7 +87,14 @@ struct TimerRowView: View {
                 item.timeLeft = item.endTime - currentTime
                 if(item.timeLeft <= 0){
                     sendNotification()
-                    if(item.cycle){resetTimer()}
+                    if(item.cycle){
+                        var endtime = item.endTime
+                        while endtime <= currentTime {
+                            endtime += item.duration
+                        }
+                        item.timeLeft = endtime - currentTime
+                        item.endTime = endtime
+                    }
                     else{stopTimer()}
                 }
                 if(item.timeLeft%10==0 || item.timeLeft <= 20){
@@ -115,12 +122,8 @@ struct TimerRowView: View {
     }
     
     private func resetTimer(){
-        var endtime = item.endTime
-        while endtime <= currentTime {
-            endtime += item.duration
-        }
-        item.timeLeft = endtime - currentTime
-        item.endTime = endtime
+        item.timeLeft = item.duration
+        item.endTime = currentTime + item.duration
     }
     
     private func sendNotification(){
