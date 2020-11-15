@@ -22,6 +22,29 @@ struct ContentView: View {
                 TimerRowView(item: item)
             }
             .onDelete(perform: deleteItems)
+            .onMove{indexSet,int in
+                items.forEach{ item in
+                    if (item.order > indexSet.map { items[$0] }[0].order && item.order < int){
+                        item.order-=1
+                    }
+                    if (item.order < indexSet.map { items[$0] }[0].order && item.order >= int){
+                        item.order+=1
+                    }
+                }
+                if(indexSet.map { items[$0] }[0].order < int){
+                    indexSet.map { items[$0] }[0].order = Int64(int - 1)
+                }else{
+                    indexSet.map { items[$0] }[0].order = Int64(int)
+                }
+                do {
+                    try viewContext.save()
+                } catch {
+                    // Replace this implementation with code to handle the error appropriately.
+                    // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
+                    let nsError = error as NSError
+                    fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+                }
+            }
         }
         .toolbar {
             Button(action: addItem) {

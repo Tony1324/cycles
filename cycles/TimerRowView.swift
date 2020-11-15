@@ -21,7 +21,7 @@ struct TimerRowView: View {
     @State var showPopover:Bool = false
     let colors = [Color.red, Color.orange, Color.yellow, Color.green, Color.blue, Color.purple, Color.pink]
     var body: some View {
-        HStack(spacing:20){
+        HStack(spacing:10){
             ZStack{
                 CircleProgressView(progress:Double(item.duration - item.timeLeft)/Double(item.duration))
                 Button(action: item.paused ? startTimer : stopTimer) {
@@ -33,6 +33,7 @@ struct TimerRowView: View {
                 if(!item.paused){startTimer()}
             }
             .foregroundColor(.white)
+            .padding(.trailing, 10)
             VStack(alignment: .leading){
                 Text(item.name ?? "Untitled")
                     .font(.title)
@@ -46,9 +47,13 @@ struct TimerRowView: View {
             }
             .buttonStyle(PlainButtonStyle())
             .foregroundColor(.white)
+            Button(action:{showPopover.toggle()}) {
+                Image(systemName: "info.circle.fill")
+            }
+            .buttonStyle(PlainButtonStyle())
+            .foregroundColor(.white)
             Button(action:deleteItem) {
                 Image(systemName: "xmark.circle.fill")
-                    .opacity(0.5)
             }
             .buttonStyle(PlainButtonStyle())
             .foregroundColor(.white)
@@ -60,16 +65,12 @@ struct TimerRowView: View {
         }
         .background(colors[Int(item.color)])
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .onLongPressGesture {
-            showPopover = true
-        }
         .animation(nil)
     }
     
     private func startTimer(){
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { success, error in
             if success {
-                print("All set!")
             } else if let error = error {
                 print(error.localizedDescription)
             }

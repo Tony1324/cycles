@@ -107,7 +107,7 @@ struct PopoverView: View {
             Spacer()
         }
         .padding()
-        .frame(width: 160, height: 200)
+        .frame(width: 160, height: 140)
     }
     
     private func saveDuration(_:Bool){
