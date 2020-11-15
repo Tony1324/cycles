@@ -51,7 +51,7 @@ struct ContentView: View {
                 Label("Add Timer", systemImage: "plus")
             }
         }
-        .frame(minWidth:400,maxWidth:400,minHeight:110)
+        .frame(minWidth:300,maxWidth:.infinity,minHeight:110)
     }
 
     private func addItem() {
@@ -68,10 +68,8 @@ struct ContentView: View {
             do {
                 try viewContext.save()
             } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
                 let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+                print("Unresolved error \(nsError), \(nsError.userInfo)")
             }
         }
     }
@@ -87,10 +85,8 @@ struct ContentView: View {
             do {
                 try viewContext.save()
             } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
                 let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+                print("Unresolved error \(nsError), \(nsError.userInfo)")
             }
         }
     }

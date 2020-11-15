@@ -32,7 +32,6 @@ struct TimerRowView: View {
             .onAppear{
                 if(!item.paused){startTimer()}
             }
-            .foregroundColor(.white)
             .padding(.trailing, 10)
             VStack(alignment: .leading){
                 Text(item.name ?? "Untitled")
@@ -40,26 +39,23 @@ struct TimerRowView: View {
                     .fontWeight(.bold)
                 Text("\(max(item.timeLeft,0)/3600) : \(max(item.timeLeft,0)%3600/60) : \(max(item.timeLeft,0)%60)")
             }
-            .foregroundColor(.white)
             Spacer()
             Button(action: resetTimer) {
                 Image(systemName:"backward.fill")
             }
             .buttonStyle(PlainButtonStyle())
-            .foregroundColor(.white)
             Button(action:{showPopover.toggle()}) {
                 Image(systemName: "info.circle.fill")
             }
             .buttonStyle(PlainButtonStyle())
-            .foregroundColor(.white)
             Button(action:deleteItem) {
                 Image(systemName: "xmark.circle.fill")
             }
             .buttonStyle(PlainButtonStyle())
-            .foregroundColor(.white)
         }
         .padding()
         .frame(maxWidth: .infinity, minHeight: 80, idealHeight: 80, maxHeight: 80)
+        .foregroundColor(.white)
         .popover(isPresented: $showPopover, arrowEdge: .trailing){
             PopoverView(item:item)
         }
@@ -86,20 +82,20 @@ struct TimerRowView: View {
             }
         }
         else{
-            DispatchQueue.main.async {
-                timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true){ tempTimer in
-                    currentTime = Int64(Date().timeIntervalSince1970)
-                    item.timeLeft = item.endTime - currentTime
-                    if(item.timeLeft <= 0){
-                        sendNotification()
-                        if(item.cycle){resetTimer()}
-                        else{stopTimer()}
-                    }
+            timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true){ tempTimer in
+                currentTime = Int64(Date().timeIntervalSince1970)
+                item.timeLeft = item.endTime - currentTime
+                if(item.timeLeft <= 0){
+                    sendNotification()
+                    if(item.cycle){resetTimer()}
+                    else{stopTimer()}
+                }
+                if(item.timeLeft%10==0 || item.timeLeft <= 20){
                     do {
                         try viewContext.save()
                     } catch {
                         let nsError = error as NSError
-                        fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+                        print("Unresolved error \(nsError), \(nsError.userInfo)")
                     }
                 }
             }
@@ -113,15 +109,18 @@ struct TimerRowView: View {
         do {
             try viewContext.save()
         } catch {
-
             let nsError = error as NSError
-            fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+            print("Unresolved error \(nsError), \(nsError.userInfo)")
         }
     }
     
     private func resetTimer(){
-        item.timeLeft = item.duration
-        item.endTime = Int64(Date().timeIntervalSince1970) + item.timeLeft
+        var endtime = item.endTime
+        while endtime <= currentTime {
+            endtime += item.duration
+        }
+        item.timeLeft = endtime - currentTime
+        item.endTime = endtime
     }
     
     private func sendNotification(){
@@ -145,7 +144,7 @@ struct TimerRowView: View {
             try viewContext.save()
         } catch {
             let nsError = error as NSError
-            fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+            print("Unresolved error \(nsError), \(nsError.userInfo)")
         }
     }
 }

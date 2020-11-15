@@ -28,7 +28,7 @@ struct PopoverView: View {
                         try viewContext.save()
                     } catch {
                         let nsError = error as NSError
-                        fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+                        print("Unresolved error \(nsError), \(nsError.userInfo)")
                     }
                 }
             })
@@ -80,7 +80,7 @@ struct PopoverView: View {
                         try viewContext.save()
                     } catch {
                         let nsError = error as NSError
-                        fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+                        print("Unresolved error \(nsError), \(nsError.userInfo)")
                     }
                 }){
                     Image(systemName: "repeat")
@@ -95,7 +95,7 @@ struct PopoverView: View {
                         try viewContext.save()
                     } catch {
                         let nsError = error as NSError
-                        fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+                        print("Unresolved error \(nsError), \(nsError.userInfo)")
                     }
                 }){
                     Image(systemName: sound ? "bell.fill" : "bell.slash")
@@ -127,7 +127,7 @@ struct PopoverView: View {
             try viewContext.save()
         } catch {
             let nsError = error as NSError
-            fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+            print("Unresolved error \(nsError), \(nsError.userInfo)")
         }
     }
 }
