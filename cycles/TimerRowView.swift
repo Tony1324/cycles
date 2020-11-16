@@ -19,11 +19,14 @@ struct TimerRowView: View {
     @State var currentTime:Int64 = Int64(Date().timeIntervalSince1970)
     @State var timer:Timer? = nil
     @State var showPopover:Bool = false
+    @State var resumeTimer:Timer? = nil
+    @State var isInBackground = false
+    @State var timeLeft = Int64(0)
     let colors = [Color.red, Color.orange, Color.yellow, Color.green, Color.blue, Color.purple, Color.pink]
     var body: some View {
         HStack(spacing:10){
             ZStack{
-                CircleProgressView(progress:Double(item.duration - item.timeLeft)/Double(item.duration))
+                CircleProgressView(progress:Double(item.duration - timeLeft)/Double(item.duration))
                 Button(action: item.paused ? startTimer : stopTimer) {
                     Image(systemName: item.paused ? "play.fill" : "pause.fill")
                 }
@@ -37,7 +40,7 @@ struct TimerRowView: View {
                 Text(item.name ?? "Untitled")
                     .font(.title)
                     .fontWeight(.bold)
-                Text("\(max(item.timeLeft,0)/3600) : \(max(item.timeLeft,0)%3600/60) : \(max(item.timeLeft,0)%60)")
+                Text("\(max(timeLeft,0)/3600) : \(max(timeLeft,0)%3600/60) : \(max(timeLeft,0)%60)")
             }
             Spacer()
             Button(action: resetTimer) {
@@ -57,10 +60,19 @@ struct TimerRowView: View {
         .frame(maxWidth: .infinity, minHeight: 80, idealHeight: 80, maxHeight: 80)
         .foregroundColor(.white)
         .popover(isPresented: $showPopover, arrowEdge: .trailing){
-            PopoverView(item:item)
+            PopoverView(item:item, timeLeft:$timeLeft)
         }
         .background(colors[Int(item.color)])
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willResignActiveNotification)) { _ in
+            isInBackground = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            isInBackground = false
+        }
+        .onAppear{
+            timeLeft = item.timeLeft
+        }
         .animation(nil)
     }
     
@@ -84,8 +96,8 @@ struct TimerRowView: View {
         else{
             timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true){ tempTimer in
                 currentTime = Int64(Date().timeIntervalSince1970)
-                item.timeLeft = item.endTime - currentTime
-                if(item.timeLeft <= 0){
+                timeLeft = item.endTime - currentTime
+                if(timeLeft <= 0){
                     sendNotification()
                     if(item.cycle){
                         var endtime = item.endTime
@@ -93,11 +105,12 @@ struct TimerRowView: View {
                             endtime += item.duration
                         }
                         item.timeLeft = endtime - currentTime
+                        timeLeft = endtime - currentTime
                         item.endTime = endtime
                     }
                     else{stopTimer()}
                 }
-                if(item.timeLeft%10==0 || item.timeLeft <= 20){
+                if(isInBackground == false || timeLeft <= 3){
                     do {
                         try viewContext.save()
                     } catch {
@@ -111,6 +124,7 @@ struct TimerRowView: View {
     
     private func stopTimer(){
         item.paused = true
+        item.timeLeft = item.endTime - currentTime
         timer?.invalidate()
         timer = nil
         do {
@@ -123,6 +137,7 @@ struct TimerRowView: View {
     
     private func resetTimer(){
         item.timeLeft = item.duration
+        timeLeft = item.duration
         item.endTime = currentTime + item.duration
     }
     

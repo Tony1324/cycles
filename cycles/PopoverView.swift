@@ -17,6 +17,7 @@ struct PopoverView: View {
     @State var seconds:Int64 = 0
     @State var cycle = false
     @State var sound = true
+    @Binding var timeLeft:Int64
     let colors = [Color.red, Color.orange, Color.yellow, Color.green, Color.blue, Color.purple, Color.pink]
     var body: some View {
         VStack{
@@ -112,6 +113,7 @@ struct PopoverView: View {
     
     private func saveDuration(_:Bool){
         item.timeLeft = max(item.timeLeft,0)
+        timeLeft = max(timeLeft,0)
         if(self.seconds>59){self.seconds=0;self.minutes+=1}
         if(self.minutes>59){self.minutes=0;self.hours+=1}
         if(self.seconds<0 && (minutes+hours)>0){self.seconds=59;self.minutes-=1}
@@ -123,6 +125,7 @@ struct PopoverView: View {
         item.duration = hours*3600+minutes*60+seconds
         item.endTime += item.duration-_duration
         item.timeLeft += item.duration-_duration
+        timeLeft += item.duration-_duration
         do {
             try viewContext.save()
         } catch {
