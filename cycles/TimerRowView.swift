@@ -22,6 +22,7 @@ struct TimerRowView: View {
     @State var resumeTimer:Timer? = nil
     @State var isInBackground = false
     @State var timeLeft = Int64(0)
+    @State var isHovering = false
     let colors = [Color.red, Color.orange, Color.yellow, Color.green, Color.blue, Color.purple, Color.pink]
     var body: some View {
         HStack(spacing:10){
@@ -43,18 +44,20 @@ struct TimerRowView: View {
                 Text("\(max(timeLeft,0)/3600) : \(max(timeLeft,0)%3600/60) : \(max(timeLeft,0)%60)")
             }
             Spacer()
-            Button(action: resetTimer) {
-                Image(systemName:"backward.fill")
+            if(self.isHovering){
+                Button(action: resetTimer) {
+                    Image(systemName:"backward.fill")
+                }
+                .buttonStyle(PlainButtonStyle())
+                Button(action:{showPopover.toggle()}) {
+                    Image(systemName: "info.circle.fill")
+                }
+                .buttonStyle(PlainButtonStyle())
+                Button(action:deleteItem) {
+                    Image(systemName: "xmark.circle.fill")
+                }
+                .buttonStyle(PlainButtonStyle())
             }
-            .buttonStyle(PlainButtonStyle())
-            Button(action:{showPopover.toggle()}) {
-                Image(systemName: "info.circle.fill")
-            }
-            .buttonStyle(PlainButtonStyle())
-            Button(action:deleteItem) {
-                Image(systemName: "xmark.circle.fill")
-            }
-            .buttonStyle(PlainButtonStyle())
         }
         .padding()
         .frame(maxWidth: .infinity, minHeight: 80, idealHeight: 80, maxHeight: 80)
@@ -73,7 +76,10 @@ struct TimerRowView: View {
         .onAppear{
             timeLeft = item.timeLeft
         }
-        .animation(nil)
+        .onHover(perform: { hovering in
+            self.isHovering = hovering
+        })
+        .animation(Animation.easeInOut(duration:0.2))
     }
     
     private func startTimer(){
