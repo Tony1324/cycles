@@ -47,6 +47,7 @@ struct PopoverView: View {
                 Stepper(value:$seconds,in: -1...60,onEditingChanged:saveDuration){
                     Text("\(max(min(seconds,59),0))")
                 }
+
             }
             .onAppear{
                 hours = item.duration/3600
@@ -118,6 +119,7 @@ struct PopoverView: View {
         if(self.minutes>59){self.minutes=0;self.hours+=1}
         if(self.seconds<0 && (minutes+hours)>0){self.seconds=59;self.minutes-=1}
         if(self.minutes<0 && hours>0){self.minutes=59;self.hours-=1}
+        if(self.hours == 0 && self.minutes == 0 && self.seconds <= 5) {self.seconds = 5}
         seconds = max(seconds, 0)
         minutes = max(minutes, 0)
         hours = max(hours, 0)

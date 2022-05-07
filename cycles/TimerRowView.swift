@@ -39,9 +39,13 @@ struct TimerRowView: View {
             .padding(.trailing, 10)
             VStack(alignment: .leading){
                 Text(item.name ?? "Untitled")
-                    .font(.title)
                     .fontWeight(.bold)
-                Text("\(max(timeLeft,0)/3600) : \(max(timeLeft,0)%3600/60) : \(max(timeLeft,0)%60)")
+                    .font(.system(.title, design: .rounded))
+
+                Text("\(max(timeLeft,0)/3600):\(max(timeLeft,0)%3600/60):\(max(timeLeft,0)%60)")
+                    .fontWeight(.bold)
+                    .font(.system(.body, design: .rounded))
+                    .opacity(0.8)
             }
             Spacer()
             if(self.isHovering){
@@ -79,7 +83,6 @@ struct TimerRowView: View {
         .onHover(perform: { hovering in
             self.isHovering = hovering
         })
-        .animation(Animation.easeInOut(duration:0.2))
     }
     
     private func startTimer(){
@@ -89,42 +92,34 @@ struct TimerRowView: View {
                 print(error.localizedDescription)
             }
         }
+        if(item.timeLeft <= 0){
+            resetTimer()
+        }
         if(item.paused){item.endTime = Int64(Date().timeIntervalSince1970) + item.timeLeft}
         item.paused = false
-        if(item.timeLeft <= 0){
-            sendNotification()
-            if(item.cycle){resetTimer()}
-            else{
-                stopTimer();
-                item.timeLeft = 0
-            }
+        if(item.paused){
+            item.endTime = Int64(Date().timeIntervalSince1970) + item.timeLeft
         }
-        else{
-            timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true){ tempTimer in
-                currentTime = Int64(Date().timeIntervalSince1970)
-                timeLeft = item.endTime - currentTime
-                if(timeLeft <= 0){
-                    sendNotification()
-                    if(item.cycle){
-                        var endtime = item.endTime
-                        while endtime <= currentTime {
-                            endtime += item.duration
-                        }
-                        item.timeLeft = endtime - currentTime
-                        timeLeft = endtime - currentTime
-                        item.endTime = endtime
-                    }
-                    else{stopTimer()}
+
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true){ tempTimer in
+            print("timer")
+            currentTime = Int64(Date().timeIntervalSince1970)
+            timeLeft = item.endTime - currentTime
+            if(timeLeft <= 0){
+                sendNotification()
+                if(item.cycle){
+                    resetTimer()
                 }
-                if(isInBackground == false || timeLeft <= 3){
-                    do {
-                        try viewContext.save()
-                    } catch {
-                        let nsError = error as NSError
-                        print("Unresolved error \(nsError), \(nsError.userInfo)")
-                    }
+                else{
+                    stopTimer()
                 }
             }
+                do {
+                    try viewContext.save()
+                } catch {
+                    let nsError = error as NSError
+                    print("Unresolved error \(nsError), \(nsError.userInfo)")
+                }
         }
     }
     
