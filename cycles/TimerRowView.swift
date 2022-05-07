@@ -32,63 +32,85 @@ struct TimerRowView: View {
     }
 
     let colors = [Color.red, Color.orange, Color.yellow, Color.green, Color.blue, Color.purple, Color.pink]
+    var color:Color {
+        colors[Int(item.color)]
+    }
     var body: some View {
+
         HStack(spacing:10){
             ZStack{
                 CircleProgressView(progress: elapsedTime.rounded(.towardZero)/Double(item.duration))
                 Button(action: item.pauseTime != nil ? startTimer : stopTimer) {
                     Image(systemName: item.pauseTime != nil ? "play.fill" : "pause.fill")
+                        .shadow(radius: 10)
                 }
                 .buttonStyle(PlainButtonStyle())
+                .font(.title2)
+
             }
             .onReceive(timer, perform: { _ in
                 currentTime = Date()
                 if(timeLeft <= 0){
                     if(item.cycle) {
-                        resetTimer()
+                        while item.wrappedStartTime <= Date().addingTimeInterval(-Double(item.duration)) {
+                            item.startTime = item.wrappedStartTime.addingTimeInterval(Double(item.duration))
+                        }
                     } else {
                         stopTimer()
                     }
                 }
             })
             .padding(.trailing, 10)
-            VStack(alignment: .leading){
-                Text(item.wrappedName)
-                    .fontWeight(.bold)
-                    .font(.system(.title, design: .rounded))
+            ZStack{
+                HStack{
+                VStack(alignment: .leading){
+                    Text(item.wrappedName)
+                        .fontWeight(.bold)
+                        .font(.system(.title, design: .rounded))
 
-                Text(formatTime(timeLeft.rounded(.awayFromZero)))
-                    .fontWeight(.bold)
-                    .font(.system(.body, design: .rounded))
-                    .opacity(0.8)
-            }
-            Spacer()
-            if(self.isHovering){
-                Button(action: resetTimer) {
-                    Image(systemName:"backward.fill")
+                    Text(formatTime(timeLeft.rounded(.awayFromZero)))
+                        .fontWeight(.bold)
+                        .font(.system(.body, design: .rounded))
+                        .opacity(0.8)
                 }
-                .buttonStyle(PlainButtonStyle())
-                Button(action:{showPopover.toggle()}) {
-                    Image(systemName: "info.circle.fill")
+                    Spacer()
                 }
-                .buttonStyle(PlainButtonStyle())
-                Button(action:deleteItem) {
-                    Image(systemName: "xmark.circle.fill")
-                }
-                .buttonStyle(PlainButtonStyle())
+                    HStack(spacing:20){
+                        Spacer()
+                        Button(action: resetTimer) {
+                            Image(systemName:"backward.fill")
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        Button(action:{showPopover.toggle()}) {
+                            Image(systemName: "info.circle.fill")
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        Button(action:deleteItem) {
+                            Image(systemName: "xmark.circle.fill")
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                    .shadow(radius: 10)
+                    .padding([.top,.bottom])
+                    .background(LinearGradient(colors: [color.opacity(0.3), color], startPoint: .leading, endPoint: .trailing))
+                    .font(.title)
+                    .animation(.default, value: isHovering)
+                    .opacity(isHovering ? 1 : 0)
+
             }
         }
         .padding()
         .frame(maxWidth: .infinity, minHeight: 80, idealHeight: 80, maxHeight: 80)
         .foregroundColor(.white)
-        .popover(isPresented: $showPopover, arrowEdge: .trailing){
+        .popover(isPresented: $showPopover, arrowEdge: .top){
             PopoverView(item:item)
         }
-        .background(colors[Int(item.color)])
+        .background(color)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .onHover(perform: { hovering in
-            self.isHovering = hovering
+            isHovering = hovering
         })
+        .animation(.default, value: isHovering)
     }
 
     private func formatTime(_ time:Double) -> String {

@@ -45,8 +45,10 @@ struct ContentView: View {
                     let nsError = error as NSError
                     fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
                 }
+
             }
         }
+
         .toolbar {
             Button(action: addItem) {
                 Label("Add Timer", systemImage: "plus")
