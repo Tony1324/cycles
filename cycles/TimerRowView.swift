@@ -7,6 +7,7 @@
 
 import SwiftUI
 import UserNotifications
+import Combine
 
 struct TimerRowView: View {
     @Environment(\.managedObjectContext) private var viewContext
@@ -14,35 +15,49 @@ struct TimerRowView: View {
         sortDescriptors: [NSSortDescriptor(key:"order",ascending:true)],
         animation: .default)
     var items:FetchedResults<TimerItem>
-    var item:FetchedResults<TimerItem>.Element
+    var item:TimerItem
 
-    @State var currentTime:Int64 = Int64(Date().timeIntervalSince1970)
-    @State var timer:Timer? = nil
+    @State var currentTime = Date()
     @State var showPopover:Bool = false
-    @State var resumeTimer:Timer? = nil
-    @State var isInBackground = false
-    @State var timeLeft = Int64(0)
     @State var isHovering = false
+
+    var timer:Publishers.Autoconnect<Timer.TimerPublisher>
+
+    var elapsedTime: Double {
+        min((item.pauseTime?.timeIntervalSinceReferenceDate ?? currentTime.timeIntervalSinceReferenceDate) - item.wrappedStartTime.timeIntervalSinceReferenceDate , Double(item.duration))
+    }
+
+    var timeLeft: Double {
+        min(Double(item.duration) - elapsedTime, Double(item.duration))
+    }
+
     let colors = [Color.red, Color.orange, Color.yellow, Color.green, Color.blue, Color.purple, Color.pink]
     var body: some View {
         HStack(spacing:10){
             ZStack{
-                CircleProgressView(progress:Double(item.duration - timeLeft)/Double(item.duration))
-                Button(action: item.paused ? startTimer : stopTimer) {
-                    Image(systemName: item.paused ? "play.fill" : "pause.fill")
+                CircleProgressView(progress: elapsedTime.rounded(.towardZero)/Double(item.duration))
+                Button(action: item.pauseTime != nil ? startTimer : stopTimer) {
+                    Image(systemName: item.pauseTime != nil ? "play.fill" : "pause.fill")
                 }
                 .buttonStyle(PlainButtonStyle())
             }
-            .onAppear{
-                if(!item.paused){startTimer()}
-            }
+            .onReceive(timer, perform: { _ in
+                currentTime = Date()
+                if(timeLeft <= 0){
+                    if(item.cycle) {
+                        resetTimer()
+                    } else {
+                        stopTimer()
+                    }
+                }
+            })
             .padding(.trailing, 10)
             VStack(alignment: .leading){
-                Text(item.name ?? "Untitled")
+                Text(item.wrappedName)
                     .fontWeight(.bold)
                     .font(.system(.title, design: .rounded))
 
-                Text("\(max(timeLeft,0)/3600):\(max(timeLeft,0)%3600/60):\(max(timeLeft,0)%60)")
+                Text(formatTime(timeLeft.rounded(.awayFromZero)))
                     .fontWeight(.bold)
                     .font(.system(.body, design: .rounded))
                     .opacity(0.8)
@@ -67,22 +82,29 @@ struct TimerRowView: View {
         .frame(maxWidth: .infinity, minHeight: 80, idealHeight: 80, maxHeight: 80)
         .foregroundColor(.white)
         .popover(isPresented: $showPopover, arrowEdge: .trailing){
-            PopoverView(item:item, timeLeft:$timeLeft)
+            PopoverView(item:item)
         }
         .background(colors[Int(item.color)])
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willResignActiveNotification)) { _ in
-            isInBackground = true
-        }
-        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-            isInBackground = false
-        }
-        .onAppear{
-            timeLeft = item.timeLeft
-        }
         .onHover(perform: { hovering in
             self.isHovering = hovering
         })
+    }
+
+    private func formatTime(_ time:Double) -> String {
+        var string = ""
+        let hours = Int(max(time,0))/3600
+        let minutes = Int(max(time,0))%3600/60
+        let seconds = Int(max(time,0))%60
+
+        if(hours != 0){
+            string.append(contentsOf: String(hours) + ":")
+        }
+
+        string.append("\(String(format: "%02d", minutes)):\(String(format: "%02d", seconds))")
+
+
+        return string
     }
     
     private func startTimer(){
@@ -92,42 +114,24 @@ struct TimerRowView: View {
                 print(error.localizedDescription)
             }
         }
-        if(item.timeLeft <= 0){
+        if(timeLeft <= 0){
             resetTimer()
         }
-        if(item.paused){item.endTime = Int64(Date().timeIntervalSince1970) + item.timeLeft}
-        item.paused = false
-        if(item.paused){
-            item.endTime = Int64(Date().timeIntervalSince1970) + item.timeLeft
-        }
 
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true){ tempTimer in
-            print("timer")
-            currentTime = Int64(Date().timeIntervalSince1970)
-            timeLeft = item.endTime - currentTime
-            if(timeLeft <= 0){
-                sendNotification()
-                if(item.cycle){
-                    resetTimer()
-                }
-                else{
-                    stopTimer()
-                }
-            }
-                do {
-                    try viewContext.save()
-                } catch {
-                    let nsError = error as NSError
-                    print("Unresolved error \(nsError), \(nsError.userInfo)")
-                }
+        if(item.pauseTime != nil){
+            item.startTime = currentTime.addingTimeInterval(-elapsedTime)
+            item.pauseTime = nil
+        }
+        do {
+            try viewContext.save()
+        } catch {
+            let nsError = error as NSError
+            print("Unresolved error \(nsError), \(nsError.userInfo)")
         }
     }
     
     private func stopTimer(){
-        item.paused = true
-        item.timeLeft = item.endTime - currentTime
-        timer?.invalidate()
-        timer = nil
+        item.pauseTime = Date()
         do {
             try viewContext.save()
         } catch {
@@ -137,15 +141,13 @@ struct TimerRowView: View {
     }
     
     private func resetTimer(){
-        item.timeLeft = item.duration
-        timeLeft = item.duration
-        item.endTime = currentTime + item.duration
+        item.startTime = Date()
     }
     
     private func sendNotification(){
         let content = UNMutableNotificationContent()
-        content.title = item.name ?? "Untitled Timer"
-        content.subtitle = "\(max(item.duration,0)/3600) : \(max(item.duration,0)%3600/60) : \(max(item.duration,0)%60)"
+        content.title = item.wrappedName
+        content.subtitle = formatTime(Double(item.duration))
         if(item.sound){content.sound = UNNotificationSound.default}
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
         let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)

@@ -15,11 +15,12 @@ struct ContentView: View {
         sortDescriptors: [NSSortDescriptor(key:"order",ascending:true)],
         animation: .default)
     var items: FetchedResults<TimerItem>
+    let timer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
 
     var body: some View {
         List {
             ForEach(items) { item in
-                TimerRowView(item: item)
+                TimerRowView(item: item, timer: timer)
             }
             .onDelete(perform: deleteItems)
             .onMove{indexSet,int in
@@ -58,8 +59,9 @@ struct ContentView: View {
         withAnimation {
             let newItem = TimerItem(context: viewContext)
             newItem.order = Int64(items.count)
-            newItem.duration = Int64(300)
-            newItem.timeLeft = Int64(300)
+            newItem.duration = 300
+            newItem.startTime = Date()
+            newItem.pauseTime = Date()
             newItem.paused = true
             newItem.color = Int64(4)
             newItem.name = "Untitled Timer"

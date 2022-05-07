@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1B0EFEA62826A39D00AEBE60 /* TimerItem helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B0EFEA52826A39D00AEBE60 /* TimerItem helpers.swift */; };
 		1B167F04255F6753008692C4 /* PopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B167F03255F6753008692C4 /* PopoverView.swift */; };
 		1B788D28255DFE8C00696104 /* cyclesApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B788D27255DFE8C00696104 /* cyclesApp.swift */; };
 		1B788D2A255DFE8C00696104 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B788D29255DFE8C00696104 /* ContentView.swift */; };
@@ -19,6 +20,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		1B0EFEA52826A39D00AEBE60 /* TimerItem helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TimerItem helpers.swift"; sourceTree = "<group>"; };
 		1B167F03255F6753008692C4 /* PopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverView.swift; sourceTree = "<group>"; };
 		1B788D24255DFE8C00696104 /* cycles.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = cycles.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1B788D27255DFE8C00696104 /* cyclesApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = cyclesApp.swift; sourceTree = "<group>"; };
@@ -66,6 +68,7 @@
 				1B788D27255DFE8C00696104 /* cyclesApp.swift */,
 				1B788D29255DFE8C00696104 /* ContentView.swift */,
 				1B788D3E255E028700696104 /* TimerRowView.swift */,
+				1B0EFEA52826A39D00AEBE60 /* TimerItem helpers.swift */,
 				1B167F03255F6753008692C4 /* PopoverView.swift */,
 				1B788D41255E0A6E00696104 /* CircleProgressView.swift */,
 				1B788D2B255DFE8D00696104 /* Assets.xcassets */,
@@ -160,6 +163,7 @@
 				1B788D31255DFE8D00696104 /* Persistence.swift in Sources */,
 				1B788D2A255DFE8C00696104 /* ContentView.swift in Sources */,
 				1B788D34255DFE8D00696104 /* cycles.xcdatamodeld in Sources */,
+				1B0EFEA62826A39D00AEBE60 /* TimerItem helpers.swift in Sources */,
 				1B788D28255DFE8C00696104 /* cyclesApp.swift in Sources */,
 				1B788D42255E0A6E00696104 /* CircleProgressView.swift in Sources */,
 			);
